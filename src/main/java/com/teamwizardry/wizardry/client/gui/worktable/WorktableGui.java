@@ -85,7 +85,7 @@ public class WorktableGui extends GuiBase {
 		// --- TOAST BOX --- //
 		toast = new ComponentText(384, 139, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
 		toast.setSize(new Vec2d(80, 69).mul(2));
-		toast.clipping.setClipToBounds(true);
+		toast.setClipToBounds(true);
 		toast.getTransform().setScale(0.5f);
 		toast.getWrap().setValue(160);
 		tableComponent.add(toast);
@@ -136,7 +136,7 @@ public class WorktableGui extends GuiBase {
 				save.add(sprite);
 			}
 
-			save.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			save.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
 				List<String> txt = new ArrayList<>();
 
 				if (!animationPlaying && !Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
@@ -395,7 +395,7 @@ public class WorktableGui extends GuiBase {
 				bookIconMask.add(bookIcon);
 
 				bookIcon.getTransform().setTranslateZ(200);
-				bookIconMask.clipping.setClipToBounds(true);
+				bookIconMask.setClipToBounds(true);
 				bookIconMask.getTransform().setTranslateZ(250);
 
 				final Vec2d originalPos = bookIcon.getPos();

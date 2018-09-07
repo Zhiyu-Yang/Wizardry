@@ -39,7 +39,7 @@ public class ComponentModifiers extends GuiComponent {
 		super(384, 50, 80, 16 * 5);
 		this.worktable = worktable;
 
-		clipping.setClipToBounds(true);
+		setClipToBounds(true);
 
 		refresh();
 
@@ -138,7 +138,7 @@ public class ComponentModifiers extends GuiComponent {
 				animPlate.setCompletion(() -> Minecraft.getMinecraft().player.playSound(ModSounds.WHOOSH, 1f, 1f));
 				add(animPlate);
 
-				bar.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+				bar.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
 					List<String> txt = new ArrayList<>();
 
 					if (worktable.animationPlaying || tableModifier.getMouseOver()) return txt;

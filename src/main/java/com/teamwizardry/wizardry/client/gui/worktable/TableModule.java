@@ -259,7 +259,7 @@ public class TableModule extends GuiComponent {
 				if (event.component.hasTag("connecting")) {
 					for (GuiComponent paperComponent : paper.getChildren()) {
 						if (paperComponent == event.component) continue;
-						if (!paperComponent.geometry.getMouseOverNoOcclusion()) continue;
+						if (!paperComponent.getMouseOverNoOcclusion()) continue;
 
 						if (!(paperComponent instanceof TableModule)) continue;
 						TableModule linkTo = (TableModule) paperComponent;
@@ -317,7 +317,7 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign || enableTooltip)
-			render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			getTooltip().func((Function<GuiComponent, List<String>>) t -> {
 				List<String> txt = new ArrayList<>();
 
 				if (worktable.animationPlaying) return txt;
