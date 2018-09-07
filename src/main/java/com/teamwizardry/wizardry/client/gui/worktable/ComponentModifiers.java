@@ -118,7 +118,7 @@ public class ComponentModifiers extends GuiComponent {
 				ModuleModifier modifier = modifiers[i];
 
 				ComponentRect bar = new ComponentRect(0, 0, getSize().getXi(), PIXELS_PER_BAR);
-				bar.getColor().setValue(new Color(0x80000000, true));
+				bar.setColor(new Color(0x80000000, true));
 
 				TableModule tableModifier = new TableModule(worktable, modifier, false, true);
 				tableModifier.setEnableTooltip(true);
@@ -126,7 +126,7 @@ public class ComponentModifiers extends GuiComponent {
 				bar.add(tableModifier);
 
 				ComponentText text = new ComponentText(20, 4, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
-				text.getText().setValue(TextFormatting.GREEN + modifier.getShortHandName());
+				text.setText(TextFormatting.GREEN + modifier.getShortHandName());
 				bar.add(text);
 
 				bar.setVisible(true);
@@ -138,7 +138,7 @@ public class ComponentModifiers extends GuiComponent {
 				animPlate.setCompletion(() -> Minecraft.getMinecraft().player.playSound(ModSounds.WHOOSH, 1f, 1f));
 				add(animPlate);
 
-				bar.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+				bar.getTooltip_im().set(() -> {
 					List<String> txt = new ArrayList<>();
 
 					if (worktable.animationPlaying || tableModifier.getMouseOver()) return txt;
@@ -151,19 +151,19 @@ public class ComponentModifiers extends GuiComponent {
 				});
 
 				bar.BUS.hook(GuiComponentEvents.MouseInEvent.class, event -> {
-					bar.getColor().setValue(new Color(0x66000000, true));
+					bar.setColor(new Color(0x66000000, true));
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseOutEvent.class, event -> {
-					bar.getColor().setValue(new Color(0x80000000, true));
+					bar.setColor(new Color(0x80000000, true));
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
 					if (event.component.getMouseOver()) {
-						bar.getColor().setValue(new Color(0x4D000000, true));
+						bar.setColor(new Color(0x4D000000, true));
 					}
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
 					if (event.component.getMouseOver()) {
-						bar.getColor().setValue(new Color(0x80000000, true));
+						bar.setColor(new Color(0x80000000, true));
 					}
 				});
 

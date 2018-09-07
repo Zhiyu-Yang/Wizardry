@@ -39,6 +39,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Created by Demoniaque on 6/17/2016.
@@ -70,7 +71,7 @@ public class WorktableGui extends GuiBase {
 
 		// GRAY OUT BACKGROUND
 		ComponentRect grayBackground = new ComponentRect(0, 0, 40000, 40000);
-		grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, 0.8f));
+		grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, 0.8f));
 		grayBackground.getTransform().setTranslateZ(-20);
 		getFullscreenComponents().add(grayBackground);
 
@@ -87,7 +88,7 @@ public class WorktableGui extends GuiBase {
 		toast.setSize(new Vec2d(80, 69).mul(2));
 		toast.setClipToBounds(true);
 		toast.getTransform().setScale(0.5f);
-		toast.getWrap().setValue(160);
+		toast.setWrap(160);
 		tableComponent.add(toast);
 
 		setCodexToastMessage();
@@ -95,8 +96,8 @@ public class WorktableGui extends GuiBase {
 
 		toast.BUS.hook(GuiComponentEvents.ComponentTickEvent.class, event -> {
 			if (!bookWarnRevised && !hadBook && Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
-				toast.getColor().setValue(Color.GREEN);
-				toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
+				toast.setColor(Color.GREEN);
+				toast.setText(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
 				bookWarnRevised = true;
 			}
 		});
@@ -129,14 +130,14 @@ public class WorktableGui extends GuiBase {
 				int fitWidth = save.getSize().getXi() - 16;
 
 				ComponentText textSave = new ComponentText(16 + (int) (fitWidth / 2.0 - stringWidth / 2.0), (save.getSize().getYi() / 2), ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.MIDDLE);
-				textSave.getText().setValue(saveStr);
+				textSave.setText(saveStr);
 				save.add(textSave);
 
 				ComponentSprite sprite = new ComponentSprite(BOOK_ICON, 2, 0);
 				save.add(sprite);
 			}
 
-			save.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			save.getTooltip_im().set(() -> {
 				List<String> txt = new ArrayList<>();
 
 				if (!animationPlaying && !Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
@@ -213,12 +214,12 @@ public class WorktableGui extends GuiBase {
 	public void setCodexToastMessage() {
 		if (!Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
 			hadBook = false;
-			toast.getColor().setValue(Color.RED);
-			toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.no_codex_found"));
+			toast.setColor(Color.RED);
+			toast.setText(LibrarianLib.PROXY.translate("wizardry.table.no_codex_found"));
 		} else {
 			hadBook = true;
-			toast.getColor().setValue(Color.GREEN);
-			toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
+			toast.setColor(Color.GREEN);
+			toast.setText(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
 		}
 	}
 
@@ -289,14 +290,14 @@ public class WorktableGui extends GuiBase {
 	}
 
 	public Pair<String, Color> getToastMessage() {
-		String text = toast.getText().getValue(toast);
-		Color color = toast.getColor().getValue(toast);
+		String text = toast.getText();
+		Color color = toast.getColor();
 		return new Pair<>(text, color);
 	}
 
 	public void setToastMessage(String text, Color color) {
-		toast.getText().setValue(getToastHeader() + text);
-		toast.getColor().setValue(color);
+		toast.setText(getToastHeader() + text);
+		toast.setColor(color);
 	}
 
 	private Set<TableModule> getSpellHeads() {
@@ -370,10 +371,10 @@ public class WorktableGui extends GuiBase {
 			// GRAY BACKGROUND
 			{
 				ComponentRect grayBackground = new ComponentRect(0, 0, tableComponent.getSize().getXi(), tableComponent.getSize().getYi());
-				grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, 0f));
+				grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, 0f));
 				grayBackground.getTransform().setTranslateZ(200);
 				grayBackground.BUS.hook(GuiComponentEvents.ComponentTickEvent.class, event -> {
-					grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
+					grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
 				});
 				tableComponent.add(grayBackground);
 

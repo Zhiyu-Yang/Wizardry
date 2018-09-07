@@ -118,12 +118,12 @@ public class ComponentSpellRecipe implements IBookElement {
 			int index = i;
 			applier = applier.andThen(component -> {
 				ComponentStack componentStack = new ComponentStack((index % 4) * 32, (index / 4) * 16);
-				componentStack.getStack().setValue(stack);
+				componentStack.setStack(stack);
 				component.add(componentStack);
 
 				if (index != spellItems.size() - 1 && (index % 4) < 3) {
 					ComponentSprite nextItem = new ComponentSprite(book.getHomeSprite(), 32 + (index % 4) * 32, (index / 4) * 16 + 13, 16, 8);
-					nextItem.getColor().setValue(book.getBook().getHighlightColor());
+					nextItem.setColor(book.getBook().getHighlightColor());
 					nextItem.getTransform().setRotate(Math.toRadians(180));
 					component.add(nextItem);
 				}
@@ -158,10 +158,10 @@ public class ComponentSpellRecipe implements IBookElement {
 	private static void pageFromString(GuiBook book, List<PaginationContext> contexts, StringBuilder page) {
 		contexts.add(new PaginationContext(() -> {
 			ComponentText spellStructureText = new ComponentText(16, 16, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
-			spellStructureText.getUnicode().setValue(true);
-			spellStructureText.getEnableUnicodeBidi().setValue(false);
-			spellStructureText.getText().setValue(page.toString());
-			spellStructureText.getWrap().setValue(book.getMainBookComponent().getSize().getXi() - 32);
+			spellStructureText.setUnicode(true);
+			spellStructureText.setEnableUnicodeBidi(false);
+			spellStructureText.setText(page.toString());
+			spellStructureText.setWrap(book.getMainBookComponent().getSize().getXi() - 32);
 			return spellStructureText;
 		}));
 	}

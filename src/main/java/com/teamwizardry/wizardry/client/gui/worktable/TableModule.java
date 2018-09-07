@@ -317,11 +317,11 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign || enableTooltip)
-			getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			getTooltip_im().set(() -> {
 				List<String> txt = new ArrayList<>();
 
 				if (worktable.animationPlaying) return txt;
-				if (t.hasTag("connecting")) return txt;
+				if (this.hasTag("connecting")) return txt;
 
 				txt.add(TextFormatting.GOLD + module.getReadableName());
 				if (GuiScreen.isShiftKeyDown()) {
