@@ -231,7 +231,7 @@ public class TableModule extends GuiComponent {
 				if (!isInsidePaper) {
 					if (!event.component.hasTag("connecting")) {
 
-						for (GuiComponent paperComponent : paper.getChildren()) {
+						for (GuiComponent paperComponent : paper.getSubComponents()) {
 							if (paperComponent == event.component) continue;
 
 							if (!(paperComponent instanceof TableModule)) continue;
@@ -257,7 +257,7 @@ public class TableModule extends GuiComponent {
 				}
 
 				if (event.component.hasTag("connecting")) {
-					for (GuiComponent paperComponent : paper.getChildren()) {
+					for (GuiComponent paperComponent : paper.getSubComponents()) {
 						if (paperComponent == event.component) continue;
 						if (!paperComponent.getMouseOverNoOcclusion()) continue;
 
@@ -611,14 +611,14 @@ public class TableModule extends GuiComponent {
 	 * IE: A spell chain head.
 	 */
 	private boolean checkSafety(GuiComponent paper) {
-		for (GuiComponent child : paper.getChildren()) {
+		for (GuiComponent child : paper.getSubComponents()) {
 			if (child == this) continue;
 			if (!(child instanceof TableModule)) continue;
 			TableModule childModule = (TableModule) child;
 
 			boolean linkedFromSomewhere = false;
 			if (childModule.getLinksTo() != null) {
-				for (GuiComponent subChild : paper.getChildren()) {
+				for (GuiComponent subChild : paper.getSubComponents()) {
 					if (subChild == child) continue;
 					if (!(subChild instanceof TableModule)) continue;
 					TableModule subChildModule = (TableModule) subChild;

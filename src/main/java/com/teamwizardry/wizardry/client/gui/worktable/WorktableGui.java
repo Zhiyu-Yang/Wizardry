@@ -303,13 +303,13 @@ public class WorktableGui extends GuiBase {
 	private Set<TableModule> getSpellHeads() {
 		Set<TableModule> set = new HashSet<>();
 
-		for (GuiComponent child : paper.getChildren()) {
+		for (GuiComponent child : paper.getSubComponents()) {
 			if (!(child instanceof TableModule)) continue;
 			TableModule childModule = (TableModule) child;
 
 			if (childModule.getLinksTo() != null) {
 				boolean linkedToSomehow = false;
-				for (GuiComponent subChild : paper.getChildren()) {
+				for (GuiComponent subChild : paper.getSubComponents()) {
 					if (!(subChild instanceof TableModule)) continue;
 					TableModule subChildModule = (TableModule) subChild;
 					if (subChildModule == childModule) continue;
@@ -426,7 +426,7 @@ public class WorktableGui extends GuiBase {
 
 				HashMap<TableModule, UUID> links = new HashMap<>();
 
-				for (GuiComponent component : paper.getChildren()) {
+				for (GuiComponent component : paper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule tableModule = (TableModule) component;
 
@@ -455,7 +455,7 @@ public class WorktableGui extends GuiBase {
 
 					if (linkTo == null) continue;
 
-					for (GuiComponent child : fakePaper.getChildren()) {
+					for (GuiComponent child : fakePaper.getSubComponents()) {
 						UUID uuid = child.getData(UUID.class, "uuid");
 						if (uuid == null) continue;
 
@@ -469,7 +469,7 @@ public class WorktableGui extends GuiBase {
 					}
 				}
 
-				for (GuiComponent component : fakePaper.getChildren()) {
+				for (GuiComponent component : fakePaper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule fakeModule = (TableModule) component;
 

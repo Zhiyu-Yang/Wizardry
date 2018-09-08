@@ -57,7 +57,7 @@ public class ComponentModifiers extends GuiComponent {
 	}
 
 	public void set() {
-		List<GuiComponent> children = new ArrayList<>(getChildren());
+		List<GuiComponent> children = new ArrayList<>(getSubComponents());
 
 		int childrenSize = children.size(); // units: none (modifier)
 
