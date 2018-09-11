@@ -7,6 +7,7 @@ import com.teamwizardry.librarianlib.features.animator.animations.BasicAnimation
 import com.teamwizardry.librarianlib.features.gui.EnumMouseButton;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponent;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
+import com.teamwizardry.librarianlib.features.gui.component.GuiLayerEvents;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentVoid;
 import com.teamwizardry.librarianlib.features.gui.mixin.DragMixin;
 import com.teamwizardry.librarianlib.features.math.Vec2d;
@@ -86,9 +87,9 @@ public class TableModule extends GuiComponent {
 				if (event.getButton() == EnumMouseButton.LEFT && getMouseOver()) {
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 					TableModule item = new TableModule(this.worktable, this.module, true, false);
-					item.setPos(paper.otherPosToThisContext(event.component, event.getMousePos()));
+					item.setPos(paper.otherPosToThisContext(this, event.getMousePos()));
 					DragMixin drag = new DragMixin(item, vec2d -> vec2d);
-					drag.setDragOffset(new Vec2d(6, 6));
+					drag.setClickedPoint(new Vec2d(6, 6));
 					drag.setMouseDown(event.getButton());
 					paper.add(item);
 
@@ -335,7 +336,7 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign)
-			BUS.hook(GuiComponentEvents.MouseInEvent.class, event -> {
+			BUS.hook(GuiLayerEvents.MouseInEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (worktable.selectedModule == this) return;
 				Vec2d toSize = new Vec2d(20, 20);
@@ -365,7 +366,7 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign)
-			BUS.hook(GuiComponentEvents.MouseOutEvent.class, event -> {
+			BUS.hook(GuiLayerEvents.MouseOutEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (worktable.selectedModule == this) return;
 				Vec2d toSize = new Vec2d(16, 16);
@@ -482,8 +483,8 @@ public class TableModule extends GuiComponent {
 	}
 
 	@Override
-	public void drawComponent(@NotNull Vec2d mousePos, float partialTicks) {
-		super.drawComponent(mousePos, partialTicks);
+	public void draw(float partialTicks) {
+		super.draw(partialTicks);
 		GlStateManager.color(1f, 1f, 1f, 1f);
 		GlStateManager.enableAlpha();
 		GlStateManager.enableTexture2D();
@@ -494,7 +495,7 @@ public class TableModule extends GuiComponent {
 
 		GlStateManager.translate(0, 0, -20);
 		if (hasTag("connecting")) {
-			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), mousePos, getColorForModule(module.getModuleType()), Color.WHITE);
+			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), getMousePos(), getColorForModule(module.getModuleType()), Color.WHITE);
 		}
 		if (linksTo != null) {
 			Vec2d posContext = linksTo.thisPosToOtherContext(this);

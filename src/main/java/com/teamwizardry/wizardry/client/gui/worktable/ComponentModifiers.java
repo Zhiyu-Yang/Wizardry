@@ -9,6 +9,7 @@ import com.teamwizardry.librarianlib.features.animator.animations.ScheduledEvent
 import com.teamwizardry.librarianlib.features.gui.EnumMouseButton;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponent;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
+import com.teamwizardry.librarianlib.features.gui.component.GuiLayerEvents;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentRect;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentText;
 import com.teamwizardry.librarianlib.features.math.Vec2d;
@@ -150,25 +151,25 @@ public class ComponentModifiers extends GuiComponent {
 					return txt;
 				});
 
-				bar.BUS.hook(GuiComponentEvents.MouseInEvent.class, event -> {
+				bar.BUS.hook(GuiLayerEvents.MouseInEvent.class, event -> {
 					bar.setColor(new Color(0x66000000, true));
 				});
-				bar.BUS.hook(GuiComponentEvents.MouseOutEvent.class, event -> {
+				bar.BUS.hook(GuiLayerEvents.MouseOutEvent.class, event -> {
 					bar.setColor(new Color(0x80000000, true));
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-					if (event.component.getMouseOver()) {
+					if (bar.getMouseOver()) {
 						bar.setColor(new Color(0x4D000000, true));
 					}
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-					if (event.component.getMouseOver()) {
+					if (bar.getMouseOver()) {
 						bar.setColor(new Color(0x80000000, true));
 					}
 				});
 
 				bar.BUS.hook(GuiComponentEvents.MouseClickEvent.class, (event) -> {
-					if (!event.component.getMouseOver()) return;
+					if (!bar.getMouseOver()) return;
 					if (worktable.selectedModule == null) return;
 
 					int j = worktable.selectedModule.hasData(Integer.class, modifier.getID()) ? worktable.selectedModule.getData(Integer.class, modifier.getID()) : 0;
@@ -241,7 +242,7 @@ public class ComponentModifiers extends GuiComponent {
 	}
 
 	@Override
-	public void drawComponent(@Nonnull Vec2d mousePos, float partialTicks) {
+	public void draw(float partialTicks) {
 
 	}
 }

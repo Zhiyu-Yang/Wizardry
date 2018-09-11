@@ -150,19 +150,19 @@ public class WorktableGui extends GuiBase {
 				if (animationPlaying || !Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
 					save.setSprite(BUTTON_PRESSED);
 				} else {
-					if (event.component.getMouseOver())
+					if (save.getMouseOver())
 						save.setSprite(BUTTON_HIGHLIGHTED);
 					else save.setSprite(BUTTON_NORMAL);
 				}
 			});
 
 			save.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-				if (event.component.getMouseOver())
+				if (save.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 			});
 
 			save.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-				if (event.component.getMouseOver())
+				if (save.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_OUT, 1f, 1f);
 			});
 

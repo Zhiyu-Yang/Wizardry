@@ -2,6 +2,7 @@ package com.teamwizardry.wizardry.client.gui.book;
 
 import com.teamwizardry.librarianlib.core.LibrarianLib;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
+import com.teamwizardry.librarianlib.features.gui.component.GuiLayerEvents;
 import com.teamwizardry.librarianlib.features.gui.provided.book.IBookGui;
 import com.teamwizardry.librarianlib.features.gui.provided.book.context.Bookmark;
 import com.teamwizardry.librarianlib.features.gui.provided.book.context.ComponentBookMark;
@@ -22,13 +23,13 @@ public class ComponentRecipeBar extends ComponentBookMark {
 
 		setBookmarkText(LibrarianLib.PROXY.translate("wizardry.book.spell_recipe_recipe"), book.getBook().getSearchTextColor(), -5);
 
-		BUS.hook(GuiComponentEvents.MouseInEvent.class, mouseInEvent -> {
+		BUS.hook(GuiLayerEvents.MouseInEvent.class, mouseInEvent -> {
 			if (!focused) {
 				slideOutShort();
 			}
 		});
 
-		BUS.hook(GuiComponentEvents.MouseOutEvent.class, mouseOutEvent -> {
+		BUS.hook(GuiLayerEvents.MouseOutEvent.class, mouseOutEvent -> {
 			if (!focused) {
 				slideIn();
 			}
