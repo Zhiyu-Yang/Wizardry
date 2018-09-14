@@ -49,12 +49,12 @@ public class TableModule extends GuiComponent {
 	@Nonnull
 	private final Module module;
 	private final boolean draggable;
-	private final Sprite icon;
 	private final boolean benign;
 	public float radius = 16, textRadius = 10;
 	@Nullable
 	private TableModule linksTo = null;
 	private boolean enableTooltip;
+	private ModuleLayer moduleLayer;
 	/**
 	 * ALWAYS from the context of null. Never to any other component.
 	 */
@@ -68,8 +68,10 @@ public class TableModule extends GuiComponent {
 		this.worktable = worktable;
 		this.module = module;
 		this.draggable = draggable;
-		icon = new Sprite(new ResourceLocation(Wizardry.MODID, "textures/gui/worktable/icons/" + module.getID() + ".png"));
 		this.benign = enableTooltip = benign;
+		this.moduleLayer = new ModuleLayer(0, 0);
+		this.moduleLayer.setModuleID(module.getID());
+		this.add(moduleLayer);
 
 		initialPos = thisPosToOtherContext(null);
 
@@ -397,6 +399,12 @@ public class TableModule extends GuiComponent {
 			});
 	}
 
+	@Override
+	public void layoutChildren() {
+	    moduleLayer.setPos(this.getSize().divide(2));
+		moduleLayer.setSize(this.getSize());
+	}
+
 	public static void drawWire(Vec2d start, Vec2d end, Color primary, Color secondary) {
 		GlStateManager.pushMatrix();
 		GlStateManager.enableBlend();
@@ -483,6 +491,17 @@ public class TableModule extends GuiComponent {
 	}
 
 	@Override
+	public void preFrame() {
+		if(worktable.selectedModule == this ||
+				(!benign && !worktable.animationPlaying && getMouseOver() && !hasTag("connecting"))
+		) {
+			this.setZIndex(100);
+		} else {
+            this.setZIndex(0);
+		}
+	}
+
+	@Override
 	public void draw(float partialTicks) {
 		super.draw(partialTicks);
 		GlStateManager.color(1f, 1f, 1f, 1f);
@@ -504,18 +523,6 @@ public class TableModule extends GuiComponent {
 		}
 
 		GlStateManager.translate(0, 0, 20);
-
-		if (worktable.selectedModule == this || (!benign && !worktable.animationPlaying && getMouseOver() && !hasTag("connecting"))) {
-			GlStateManager.translate(0, 0, 80);
-		}
-
-		plate.bind();
-		plate.draw(0, 0, 0, getSize().getXf(), getSize().getYf());
-
-		float shrink = 4;
-
-		icon.bind();
-		icon.draw(0, shrink / 2.0f, shrink / 2.0f, getSize().getXf() - shrink, getSize().getYf() - shrink);
 
 		HashMap<ModuleModifier, Integer> modifiers = new HashMap<>();
 		List<ModuleModifier> modifierList = new ArrayList<>();
@@ -576,10 +583,6 @@ public class TableModule extends GuiComponent {
 				GlStateManager.translate(-x, -y, 15);
 				GlStateManager.popMatrix();
 			}
-		}
-
-		if (worktable.selectedModule == this || (!benign && !worktable.animationPlaying && getMouseOver() && !hasTag("connecting"))) {
-			GlStateManager.translate(0, 0, -80);
 		}
 	}
 
@@ -650,10 +653,6 @@ public class TableModule extends GuiComponent {
 				return false;
 			}
 		}
-	}
-
-	public Sprite getIcon() {
-		return icon;
 	}
 
 	public boolean isEnableTooltip() {
