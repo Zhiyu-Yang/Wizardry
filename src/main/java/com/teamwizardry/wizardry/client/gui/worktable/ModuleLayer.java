@@ -23,7 +23,6 @@ public class ModuleLayer extends GuiLayer {
 
     public ModuleLayer(int posX, int posY) {
         super(posX, posY, PLATE.getWidth(), PLATE.getHeight());
-        this.getTransform().setAnchor(new Vec2d(0.5, 0.5));
         iconLayer = new SpriteLayer(null, 0, 0, PLATE.getWidth(), PLATE.getHeight());
         backgroundLayer = new SpriteLayer(PLATE, 0, 0, PLATE.getWidth(), PLATE.getHeight());
         this.add(backgroundLayer, iconLayer);

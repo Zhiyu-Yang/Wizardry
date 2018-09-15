@@ -3,17 +3,17 @@ package com.teamwizardry.wizardry.client.gui.worktable;
 import com.teamwizardry.librarianlib.core.LibrarianLib;
 import com.teamwizardry.librarianlib.core.client.ClientTickHandler;
 import com.teamwizardry.librarianlib.features.animator.Easing;
-import com.teamwizardry.librarianlib.features.animator.animations.BasicAnimation;
 import com.teamwizardry.librarianlib.features.gui.EnumMouseButton;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponent;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
+import com.teamwizardry.librarianlib.features.gui.component.GuiLayer;
 import com.teamwizardry.librarianlib.features.gui.component.GuiLayerEvents;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentVoid;
+import com.teamwizardry.librarianlib.features.gui.components.TextLayer;
 import com.teamwizardry.librarianlib.features.gui.mixin.DragMixin;
+import com.teamwizardry.librarianlib.features.gui.value.GuiAnimator;
 import com.teamwizardry.librarianlib.features.math.Vec2d;
 import com.teamwizardry.librarianlib.features.math.interpolate.position.InterpBezier2D;
-import com.teamwizardry.librarianlib.features.sprite.Sprite;
-import com.teamwizardry.wizardry.Wizardry;
 import com.teamwizardry.wizardry.api.spell.module.*;
 import com.teamwizardry.wizardry.init.ModSounds;
 import net.minecraft.client.Minecraft;
@@ -23,20 +23,15 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Function;
 
 import static com.teamwizardry.wizardry.client.gui.worktable.WorktableGui.*;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -55,13 +50,13 @@ public class TableModule extends GuiComponent {
 	private TableModule linksTo = null;
 	private boolean enableTooltip;
 	private ModuleLayer moduleLayer;
+	private GuiLayer centerLayer = new GuiLayer(8, 8, 0, 0);
 	/**
 	 * ALWAYS from the context of null. Never to any other component.
 	 */
 	private Vec2d initialPos;
-
-	//public float size = 16;
-	//public final float originalSize = 16;
+	private Map<String, ModuleLayer> modifiers = new HashMap<>();
+	private Map<String, TextLayer> modifierText = new HashMap<>();
 
 	public TableModule(@Nonnull WorktableGui worktable, @Nonnull Module module, boolean draggable, boolean benign) {
 		super(0, 0, PLATE.getWidth(), PLATE.getHeight());
@@ -69,9 +64,14 @@ public class TableModule extends GuiComponent {
 		this.module = module;
 		this.draggable = draggable;
 		this.benign = enableTooltip = benign;
+
+		this.centerLayer.setPos(this.getSize().divide(2));
+		this.add(this.centerLayer);
+
 		this.moduleLayer = new ModuleLayer(0, 0);
+		this.moduleLayer.getTransform().setAnchor(new Vec2d(0.5, 0.5));
 		this.moduleLayer.setModuleID(module.getID());
-		this.add(moduleLayer);
+		this.centerLayer.add(moduleLayer);
 
 		initialPos = thisPosToOtherContext(null);
 
@@ -133,92 +133,59 @@ public class TableModule extends GuiComponent {
 						Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_OUT, 1f, 1f);
 						worktable.selectedModule = null;
 
-						Vec2d toSize = new Vec2d(20, 20);
-						BasicAnimation<TableModule> animSize = new BasicAnimation<>(this, "size");
-						animSize.setDuration(5);
-						animSize.setEasing(Easing.easeOutCubic);
-						animSize.setTo(toSize);
-						add(animSize);
-
-						BasicAnimation<TableModule> animPos = new BasicAnimation<>(this, "pos");
-						animPos.setDuration(5);
-						animPos.setEasing(Easing.easeOutCubic);
-						animPos.setTo(getPos().add((getSize().sub(toSize)).mul(0.5f)));
-						add(animPos);
-
-						BasicAnimation<TableModule> animRadius = new BasicAnimation<>(this, "radius");
-						animRadius.setDuration(20);
-						animRadius.setEasing(Easing.easeOutCubic);
-						animRadius.setTo(16);
-						add(animRadius);
-
-						BasicAnimation<TableModule> animText = new BasicAnimation<>(this, "textRadius");
-						animText.setDuration(40);
-						animText.setEasing(Easing.easeOutCubic);
-						animText.setTo(30);
-						add(animText);
+						add(GuiAnimator.animate(5, Easing.easeOutCubic, () -> {
+							this.moduleLayer.setSize(new Vec2d(20, 20));
+							this.layoutLayer();
+						}));
+						add(GuiAnimator.animate(20, Easing.easeOutCubic, () -> {
+							this.radius = 16;
+							this.layoutLayer();
+						}));
+						add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+							this.textRadius = 30;
+							this.layoutLayer();
+						}));
 
 					} else {
 						Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 						if (worktable.selectedModule != null) {
-							Vec2d toSize = new Vec2d(16, 16);
-							BasicAnimation<TableModule> animSize = new BasicAnimation<>(worktable.selectedModule, "size");
-							animSize.setDuration(5);
-							animSize.setEasing(Easing.easeOutCubic);
-							animSize.setTo(toSize);
-							worktable.selectedModule.add(animSize);
 
-							BasicAnimation<TableModule> animPos = new BasicAnimation<>(worktable.selectedModule, "pos");
-							animPos.setDuration(5);
-							animPos.setEasing(Easing.easeOutCubic);
-							animPos.setTo(worktable.selectedModule.getPos().add((worktable.selectedModule.getSize().sub(toSize)).mul(0.5f)));
-							worktable.selectedModule.add(animPos);
+							worktable.selectedModule.layoutLayer();
+							add(GuiAnimator.animate(5, Easing.easeOutCubic, () -> {
+								worktable.selectedModule.moduleLayer.setSize(new Vec2d(16, 16));
+								worktable.selectedModule.radius = 10;
+								worktable.selectedModule.layoutLayer();
+							}));
 
-							BasicAnimation<TableModule> animRadius = new BasicAnimation<>(worktable.selectedModule, "radius");
-							animRadius.setDuration(5);
-							animRadius.setEasing(Easing.easeOutCubic);
-							animRadius.setTo(10);
-							worktable.selectedModule.add(animRadius);
+							add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+								worktable.selectedModule.textRadius = 5;
+								worktable.selectedModule.layoutLayer();
+							}));
+							worktable.selectedModule.setNeedsLayout();
 
-							BasicAnimation<TableModule> animText2 = new BasicAnimation<>(worktable.selectedModule, "textRadius");
-							animText2.setDuration(40);
-							animText2.setEasing(Easing.easeOutCubic);
-							animText2.setTo(5);
-							worktable.selectedModule.add(animText2);
-
-							BasicAnimation<TableModule> animText = new BasicAnimation<>(this, "textRadius");
-							animText.setDuration(40);
-							animText.setEasing(Easing.easeOutCubic);
-							animText.setTo(0);
-							add(animText);
+							this.layoutLayer();
+							add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+							    this.textRadius = 0;
+								this.layoutLayer();
+							}));
 						}
 
 						worktable.selectedModule = this;
 
-						Vec2d toSize = new Vec2d(24, 24);
-						BasicAnimation<TableModule> animSize = new BasicAnimation<>(this, "size");
-						animSize.setDuration(5);
-						animSize.setEasing(Easing.easeOutCubic);
-						animSize.setTo(toSize);
-						add(animSize);
+						add(GuiAnimator.animate(5, Easing.easeOutCubic, () -> {
+							this.moduleLayer.setSize(new Vec2d(24, 24));
+							this.layoutLayer();
+						}));
 
-						BasicAnimation<TableModule> animPos = new BasicAnimation<>(this, "pos");
-						animPos.setDuration(5);
-						animPos.setEasing(Easing.easeOutCubic);
-						animPos.setTo(getPos().add((getSize().sub(toSize)).mul(0.5f)));
-						add(animPos);
+						add(GuiAnimator.animate(20, Easing.easeOutCubic, () -> {
+							this.radius = 24;
+							this.layoutLayer();
+						}));
 
-						BasicAnimation<TableModule> animRadius = new BasicAnimation<>(this, "radius");
-						animRadius.setDuration(20);
-						animRadius.setEasing(Easing.easeOutCubic);
-						animRadius.setTo(24);
-						add(animRadius);
-
-						BasicAnimation<TableModule> animText = new BasicAnimation<>(this, "textRadius");
-						animText.setDuration(40);
-						animText.setEasing(Easing.easeOutCubic);
-						animText.setTo(40);
-						add(animText);
+						add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+							this.textRadius = 40;
+							this.layoutLayer();
+						}));
 					}
 
 					worktable.modifiers.refresh();
@@ -319,90 +286,141 @@ public class TableModule extends GuiComponent {
 				event.component.removeTag("connecting");
 			});
 
-		if (!benign || enableTooltip)
-			getTooltip_im().set(() -> {
-				List<String> txt = new ArrayList<>();
-
-				if (worktable.animationPlaying) return txt;
-				if (this.hasTag("connecting")) return txt;
-
-				txt.add(TextFormatting.GOLD + module.getReadableName());
-				if (GuiScreen.isShiftKeyDown()) {
-					txt.add(TextFormatting.GRAY + module.getDescription());
-					if (module.getAttributeRanges().keySet().stream().anyMatch(attribute -> attribute.hasDetailedText()))
-						if (GuiScreen.isCtrlKeyDown())
-							module.getDetailedInfo().forEach(info -> txt.add(TextFormatting.GRAY + info));
-						else txt.add(TextFormatting.GRAY + LibrarianLib.PROXY.translate("wizardry.misc.ctrl"));
-				} else txt.add(TextFormatting.GRAY + LibrarianLib.PROXY.translate("wizardry.misc.sneak"));
-				return txt;
-			});
+//		if (!benign || enableTooltip)
+//			getTooltip_im().set(() -> {
+//				List<String> txt = new ArrayList<>();
+//
+//				if (worktable.animationPlaying) return txt;
+//				if (this.hasTag("connecting")) return txt;
+//
+//				txt.add(TextFormatting.GOLD + module.getReadableName());
+//				if (GuiScreen.isShiftKeyDown()) {
+//					txt.add(TextFormatting.GRAY + module.getDescription());
+//					if (module.getAttributeRanges().keySet().stream().anyMatch(attribute -> attribute.hasDetailedText()))
+//						if (GuiScreen.isCtrlKeyDown())
+//							module.getDetailedInfo().forEach(info -> txt.add(TextFormatting.GRAY + info));
+//						else txt.add(TextFormatting.GRAY + LibrarianLib.PROXY.translate("wizardry.misc.ctrl"));
+//				} else txt.add(TextFormatting.GRAY + LibrarianLib.PROXY.translate("wizardry.misc.sneak"));
+//				return txt;
+//			});
 
 		if (!benign)
 			BUS.hook(GuiLayerEvents.MouseInEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (worktable.selectedModule == this) return;
-				Vec2d toSize = new Vec2d(20, 20);
-				BasicAnimation<TableModule> animSize = new BasicAnimation<>(this, "size");
-				animSize.setDuration(5);
-				animSize.setEasing(Easing.easeOutCubic);
-				animSize.setTo(toSize);
-				add(animSize);
 
-				BasicAnimation<TableModule> animPos = new BasicAnimation<>(this, "pos");
-				animPos.setDuration(5);
-				animPos.setEasing(Easing.easeOutCubic);
-				animPos.setTo(getPos().add((getSize().sub(toSize)).mul(0.5f)));
-				add(animPos);
+				add(GuiAnimator.animate(5, Easing.easeOutCubic, () -> {
+					this.moduleLayer.setSize(new Vec2d(20, 20));
+					this.layoutLayer();
+				}));
 
-				BasicAnimation<TableModule> animRadius = new BasicAnimation<>(this, "radius");
-				animRadius.setDuration(20);
-				animRadius.setEasing(Easing.easeOutCubic);
-				animRadius.setTo(16);
-				add(animRadius);
+				add(GuiAnimator.animate(20, Easing.easeOutCubic, () -> {
+					this.radius = 16;
+					this.layoutLayer();
+				}));
 
-				BasicAnimation<TableModule> animText = new BasicAnimation<>(this, "textRadius");
-				animText.setDuration(40);
-				animText.setEasing(Easing.easeOutCubic);
-				animText.setTo(30);
-				add(animText);
+				add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+					this.textRadius = 30;
+					this.layoutLayer();
+				}));
 			});
 
 		if (!benign)
 			BUS.hook(GuiLayerEvents.MouseOutEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (worktable.selectedModule == this) return;
-				Vec2d toSize = new Vec2d(16, 16);
-				BasicAnimation<TableModule> animSize = new BasicAnimation<>(this, "size");
-				animSize.setDuration(5);
-				animSize.setEasing(Easing.easeOutCubic);
-				animSize.setTo(toSize);
-				add(animSize);
 
-				BasicAnimation<TableModule> animPos = new BasicAnimation<>(this, "pos");
-				animPos.setDuration(5);
-				animPos.setEasing(Easing.easeOutCubic);
-				animPos.setTo(getPos().add((getSize().sub(toSize)).mul(0.5f)));
-				add(animPos);
+				add(GuiAnimator.animate(5, Easing.easeOutCubic, () -> {
+					this.moduleLayer.setSize(new Vec2d(16, 16));
+					this.layoutLayer();
+				}));
 
-				BasicAnimation<TableModule> animRadius = new BasicAnimation<>(this, "radius");
-				animRadius.setDuration(20);
-				animRadius.setEasing(Easing.easeOutCubic);
-				animRadius.setTo(10);
-				add(animRadius);
+				add(GuiAnimator.animate(20, Easing.easeOutCubic, () -> {
+					this.radius = 10;
+					this.layoutLayer();
+				}));
 
-				BasicAnimation<TableModule> animText = new BasicAnimation<>(this, "textRadius");
-				animText.setDuration(40);
-				animText.setEasing(Easing.easeOutCubic);
-				animText.setTo(0);
-				add(animText);
-
+				add(GuiAnimator.animate(40, Easing.easeOutCubic, () -> {
+					this.textRadius = 0;
+					this.layoutLayer();
+				}));
 			});
+
+		this.BUS.hook(GuiComponentEvents.SetDataEvent.class, (e) -> {
+			this.setNeedsLayout();
+		});
 	}
 
 	@Override
 	public void layoutChildren() {
-	    moduleLayer.setPos(this.getSize().divide(2));
-		moduleLayer.setSize(this.getSize());
+		layoutModifiers();
+	}
+
+	private void layoutModifiers() {
+		HashMap<ModuleModifier, Integer> modifiers = new HashMap<>();
+		List<ModuleModifier> modifierList = new ArrayList<>();
+		Set<String> idSet = new HashSet<>();
+		for (Module module : ModuleRegistry.INSTANCE.getModules(ModuleType.MODIFIER)) {
+			if (!(module instanceof ModuleModifier)) continue;
+			if (!hasData(Integer.class, module.getID())) continue;
+
+			modifiers.put((ModuleModifier) module, getData(Integer.class, module.getID()));
+			modifierList.add((ModuleModifier) module);
+			idSet.add(module.getID());
+		}
+
+		for (String id : this.modifiers.keySet()) {
+			if (!idSet.contains(id)) {
+				ModuleLayer moduleLayer = this.modifiers.get(id);
+				moduleLayer.invalidate();
+				this.modifiers.remove(id);
+			}
+		}
+		for (String id : this.modifierText.keySet()) {
+			if (!idSet.contains(id)) {
+				TextLayer textLayer = this.modifierText.get(id);
+				textLayer.invalidate();
+				this.modifierText.remove(id);
+			}
+		}
+
+		int count = modifierList.size();
+		for (int i = 0; i < count; i++) {
+			ModuleModifier modifier = modifierList.get(i);
+			float angle = (float) (i * Math.PI * 2.0 / count);
+
+			layoutModifier(modifier, modifiers.get(modifier), angle);
+		}
+	}
+
+	private void layoutModifier(ModuleModifier modifier, int count, float angle) {
+		ModuleLayer moduleLayer = this.modifiers.get(modifier.getID());
+		TextLayer textLayer = this.modifierText.get(modifier.getID());
+		if(moduleLayer == null) {
+			moduleLayer = new ModuleLayer(0, 0);
+			moduleLayer.getTransform().setAnchor(new Vec2d(0.5, 0.5));
+			moduleLayer.setZIndex(-100);
+			moduleLayer.setModuleID(modifier.getID());
+			this.centerLayer.add(moduleLayer);
+			this.modifiers.put(modifier.getID(), moduleLayer);
+		}
+		if(textLayer == null) {
+			textLayer = new TextLayer(0, 0);
+			textLayer.getTransform().setAnchor(new Vec2d(0.5, 0.5));
+			textLayer.setZIndex(-2000);
+			this.centerLayer.add(textLayer);
+			this.modifierText.put(modifier.getID(), textLayer);
+		}
+
+		moduleLayer.setSize(this.moduleLayer.getSize().mul(0.75f));
+		moduleLayer.setPos(new Vec2d(MathHelper.cos(angle) * radius, MathHelper.sin(angle) * radius));
+
+		FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+		String txt = "x" + count;
+		// temporary, just until I sort out the text component
+		textLayer.setSize(new Vec2d(font.getStringWidth(txt), font.FONT_HEIGHT));
+		textLayer.setPos(new Vec2d(MathHelper.cos(angle) * textRadius, MathHelper.sin(angle) * textRadius));
+		textLayer.setText(txt);
 	}
 
 	public static void drawWire(Vec2d start, Vec2d end, Color primary, Color secondary) {
@@ -492,6 +510,7 @@ public class TableModule extends GuiComponent {
 
 	@Override
 	public void preFrame() {
+		this.moduleLayer.setHighlighted(worktable.selectedModule == this);
 		if(worktable.selectedModule == this ||
 				(!benign && !worktable.animationPlaying && getMouseOver() && !hasTag("connecting"))
 		) {
@@ -508,15 +527,13 @@ public class TableModule extends GuiComponent {
 		GlStateManager.enableAlpha();
 		GlStateManager.enableTexture2D();
 
-		Sprite plate;
-		plate = worktable.selectedModule == this ? PLATE_HIGHLIGHTED : PLATE;
 		Vec2d pos = Vec2d.ZERO;
 
 		GlStateManager.translate(0, 0, -20);
 		if (hasTag("connecting")) {
 			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), getMousePos(), getColorForModule(module.getModuleType()), Color.WHITE);
 		}
-		if (linksTo != null) {
+		if (linksTo != null && linksTo.getRoot() == this.getRoot()) {
 			Vec2d posContext = linksTo.thisPosToOtherContext(this);
 			Vec2d posTo = new Vec2d(posContext.getX(), posContext.getY());
 			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), posTo.add(getSize().getX() / 2.0, getSize().getY() / 2.0), getColorForModule(module.getModuleType()), getColorForModule(linksTo.getModule().getModuleType()));
@@ -524,66 +541,6 @@ public class TableModule extends GuiComponent {
 
 		GlStateManager.translate(0, 0, 20);
 
-		HashMap<ModuleModifier, Integer> modifiers = new HashMap<>();
-		List<ModuleModifier> modifierList = new ArrayList<>();
-		for (Module module : ModuleRegistry.INSTANCE.getModules(ModuleType.MODIFIER)) {
-			if (!(module instanceof ModuleModifier)) continue;
-			if (!hasData(Integer.class, module.getID())) continue;
-
-			modifiers.put((ModuleModifier) module, getData(Integer.class, module.getID()));
-			modifierList.add((ModuleModifier) module);
-		}
-
-		int count = modifierList.size();
-		for (int i = 0; i < count; i++) {
-
-			ModuleModifier modifier = modifierList.get(i);
-
-			Vec2d modSize = getSize().mul(0.75f);
-
-			float angle = (float) (i * Math.PI * 2.0 / count);
-
-			// RENDER PLATE
-			{
-				float x = (getSize().getXf() / 2f - modSize.getXf() / 2f) + MathHelper.cos(angle) * radius;
-				float y = (getSize().getYf() / 2f - modSize.getYf() / 2f) + MathHelper.sin(angle) * radius;
-
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(x, y, -10);
-
-				plate.bind();
-				plate.draw(0, 0, 0, modSize.getXf(), modSize.getYf());
-
-				float modShrink = 4;
-
-				Sprite modICon = new Sprite(new ResourceLocation(Wizardry.MODID, "textures/gui/worktable/icons/" + modifier.getID() + ".png"));
-				modICon.bind();
-				modICon.draw(0, modShrink / 2.0f, modShrink / 2.0f, modSize.getXf() - modShrink, modSize.getYf() - modShrink);
-
-				GlStateManager.translate(-x, -y, 10);
-				GlStateManager.popMatrix();
-			}
-
-			// RENDER TEXT
-			{
-				FontRenderer font = Minecraft.getMinecraft().fontRenderer;
-				String txt = "x" + modifiers.get(modifier);
-				float txtWidth = font.getStringWidth(txt);
-				float txtHeight = font.FONT_HEIGHT;
-
-				float x = (getSize().getXf() / 2f - txtWidth / 2f) + MathHelper.cos(angle) * textRadius;
-				float y = (getSize().getYf() / 2f - txtHeight / 2f) + MathHelper.sin(angle) * textRadius;
-
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(x, y, -15);
-
-				font.drawString(txt, 0, 0, 0x000000);
-				GlStateManager.color(1f, 1f, 1f, 1f);
-
-				GlStateManager.translate(-x, -y, 15);
-				GlStateManager.popMatrix();
-			}
-		}
 	}
 
 	@Nullable
